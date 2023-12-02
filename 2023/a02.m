@@ -5,15 +5,13 @@ blue = 14;
 res = 0;
 power = 0;
 for i=1:length(input)
-    line = input(i);
-    line1 = strsplit(line,': ');
-    line2 = strsplit(line1(2),'; ');
+    line = input(i).split([": ","; "]);
     correct = 0;
     max_red = 0;
     max_green = 0;
     max_blue = 0;
-    for j=1:length(line2)
-        revealed = line2(j);
+    for j=2:length(line)
+        revealed = line(j);
         red_drawn = str2double(regexp(revealed,'(\d+) red','tokens','once'));
         green_drawn = str2double(regexp(revealed,'(\d+) green','tokens','once'));
         blue_drawn = str2double(regexp(revealed,'(\d+) blue','tokens','once'));
@@ -30,7 +28,7 @@ for i=1:length(input)
             max_blue = blue_drawn;
         end
     end
-    if correct == length(line2)
+    if correct == (length(line)-1)
         res = res + i;
     end
     power = power + max_red*max_green*max_blue;
