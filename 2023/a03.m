@@ -1,103 +1,44 @@
-input = char(readlines("a03.txt"))'-'0';
-gears = find(input == -6);
-res = 0;
-number = [];
-symclose = [];
-gearclose = [];
-gearsum = 0;
-for i=1:numel(input)
-    m = input(i);
-    if 0<=m && m<=9
-        number = [number m];
-        symclose = [symclose symbolNeighbor(input,i)];
-    elseif any(symclose)
-        res = res + sum(number .* 10.^(numel(number)-1:-1:0));
-        number = [];
-        symclose = [];
-    else
-        number = [];
-        symclose = [];
+input = char(readlines("a03.txt"));
+chars = [];
+parts = struct;
+for i = 1:numel(input)
+    if ~contains('01234566789.', input(i))
+        chars(end + 1,1) = i;
     end
-
 end
-res
-%%
-gearres = 0;
-for g = gears'
-    gearres = gearres + numClose(input, g)
-end
-
-
-%%
-function res = numClose(matrix, index)
-% Get the size of the matrix
-    [rows, cols] = size(matrix);
-
-    % Convert linear index to subscripts
-    [subRow, subCol] = ind2sub([rows, cols], index);
-
-    % Define the range of neighbors for each dimension
-    rowRange = max(1, subRow - 1):min(rows, subRow + 1);
-    colRange = max(1, subCol - 1):min(cols, subCol + 1);
-
-    % Extract the submatrix using neighboring subscripts
-    submatrix = matrix(rowRange, colRange);
-    
-    num = [];
-    nums = [];
-    % Possible numbers have to be at least 2
-    possibleNums = 0<=submatrix & submatrix<=9;
-    if sum(possibleNums,'all')>1
-        % find complete numbers. Starting top left.
-        for col = colRange
-            for row = rowRange
-                matrix(row,col)
-                if numCon(row,col,matrix)
-                    % number, check left of number
-                    if numCon(row-1,col,matrix)
-                        if numCon(row-2,col,matrix)
-                            num = matrix(row-2,col);
-                        end
-                        num = [num matrix(row-1,col)];
+for r = 1:size(input,1)
+    row = input(r,:);
+    matches = regexp(row, '(\d+)', 'tokenExtents');
+    for m = matches
+        nexts = [];
+        ma = m{:};
+        for s=-1:1
+            for d=-1:1
+                for c = ma(1):ma(end)
+                    if (r+s>0) && (r+s<=size(input,1))...
+                            && (c+d>0) && (c+d<=size(input,2))
+                        nexts(end + 1,:) = sub2ind(size(input),r+s,c+d);
                     end
-                    num = [num matrix(row,col)];
-                    if numCon(row+1,col,matrix)
-                        num = [num matrix(row+1,col)];
-                        if numCon(row+2,col,matrix)
-                            num = [num matrix(row+2,col)];
-                        end
-                    end
-                    nums = [nums sum(num .* 10.^(numel(num)-1:-1:0))];
-                    num = [];
                 end
             end
+        end      
+        % Filter neighbors that are also in chars
+        nexts = intersect(nexts, chars, 'rows');    
+        if size(nexts,1)>0
+            if isfield(parts, ['A',num2str(nexts)])
+                parts.(['A',num2str(nexts)]) = [parts.(['A',num2str(nexts)]) str2double(row(ma(1):ma(end)))];
+            else
+                parts.(['A',num2str(nexts)]) = str2double(row(ma(1):ma(end)));
+            end                
         end
     end
-    if length(unique(nums)) == 2
-        res = prod(unique(nums));
-    else
-        res = 0;
+end
+pv = fieldnames(parts);
+res1 = 0;
+res2 = 0;
+for p = pv'
+    res1 = res1 + sum(parts.(p{:}));
+    if size(parts.(p{:}),2) == 2
+        res2 = res2 + prod(parts.(p{:}));
     end
-    
-end
-
-function out = numCon(row,col,matrix)
-    out = (0<=matrix(row,col) && matrix(row,col)<=9);
-end
-
-function res = symbolNeighbor(matrix, index)
-    % Get the size of the matrix
-    [rows, cols] = size(matrix);
-
-    % Convert linear index to subscripts
-    [subRow, subCol] = ind2sub([rows, cols], index);
-
-    % Define the range of neighbors for each dimension
-    rowRange = max(1, subRow - 1):min(rows, subRow + 1);
-    colRange = max(1, subCol - 1):min(cols, subCol + 1);
-
-    % Extract the submatrix using neighboring subscripts
-    submatrix = matrix(rowRange, colRange);
-    
-    res = any((-2>submatrix) | submatrix>9 | submatrix == -1,'all');
 end
