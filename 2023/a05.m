@@ -1,10 +1,11 @@
 tic
 input = readlines('a05.txt');
+input = [input;"";"end"];
 seeds = input.extractAfter("seeds: ");
 seeds = seeds(1).extract(digitsPattern).double';
+descriptions = ["seed-to-soil map:", "soil-to-fertilizer map:", "fertilizer-to-water map:", "water-to-light map:", "light-to-temperature map:", "temperature-to-humidity map:", "humidity-to-location map:", "end" ];
 map = cell(1,length(descriptions)-1);
 locations = NaN(size(seeds));
-descriptions = ["seed-to-soil map:", "soil-to-fertilizer map:", "fertilizer-to-water map:", "water-to-light map:", "light-to-temperature map:", "temperature-to-humidity map:", "humidity-to-location map:", "end" ];
 for i=1:length(seeds)
     source = seeds(i);
     destination = [];
