@@ -11,7 +11,7 @@ sum(sorted(:,2).double .* (size(sorted,1):-1:1)')
 
 function out = rename(input)
 % in order to be able to sort them easily, replace the names of Ace with
-% Ten. ALso replace K with Q
+% Ten. Also replace K with Q. For part 2, replace J with 1.
     out = input.replace('A','r').replace('T','A').replace('r','T');
     out = out.replace('K','r').replace('Q','K').replace('r','Q');  
     % part 2
