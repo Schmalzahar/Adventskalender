@@ -11,8 +11,5 @@ end
 galaxies = find(input == '#');
 pairs = nchoosek(galaxies,2);
 paths = zeros(size(pairs,1),1);
-for i=1:height(paths)
-    [rs, cs] = ind2sub(size(input), pairs(i,:));
-    paths(i) = abs(cs(1)-cs(2))+abs(rs(1)-rs(2));
-end
-sum(paths)
+[rs, cs] = ind2sub(size(input), pairs);
+sum(abs(rs(:,1)-rs(:,2))+abs(cs(:,1)-cs(:,2)))
