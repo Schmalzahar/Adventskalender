@@ -16,7 +16,7 @@ for i=2:length(spl)
     for j=1:2
         for bd = bdir{j}
             sz = min(size(tdir{j},1) - bd, bd);
-            if all(sum(tdir{j}(bd-sz+1:bd+sz,bd-sz+1:bd+sz))>=2)
+            if all(tdir{j}(bd-sz+1:bd,bd-sz+1:bd+sz) == tdir{j}(bd+sz:-1:bd+1,bd-sz+1:bd+sz),'all')
                 res = res + multis(j) * bd;
             end
         end
