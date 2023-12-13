@@ -5,7 +5,7 @@ res2 = NaN(size(2:length(spl),2),1);
 multis = [1 100]; 
 tic
 for i=2:length(spl)
-    if i == 12
+    if i == 8
         test = 1;
     end
     block = char(input(spl(i-1)+1:spl(i)-1));
@@ -47,7 +47,7 @@ for i=2:length(spl)
             bd = bdir1{j}(k);
             sz = min(size(tdir1{j},1) - bd, bd);
             tdir1{j}(bd-sz+1:bd+sz,bd-sz+1:bd+sz)
-            if all(diag(tdir1{j}(bd-sz+1:bd+sz,bd-sz+1:bd+sz))) && all(diag(tdir1{j}(bd-sz+1:bd+sz,bd+sz:-1:bd-sz+1))) && ismember(bd,bdir{j})
+            if all(diag(tdir{j}(bd-sz+1:bd+sz,bd-sz+1:bd+sz))) && all(diag(tdir{j}(bd-sz+1:bd+sz,bd+sz:-1:bd-sz+1))) && ismember(bd,bdir{j})
 
                 res(i-1) = multis(j) * bd;
 
