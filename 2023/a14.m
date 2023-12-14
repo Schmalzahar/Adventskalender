@@ -4,7 +4,7 @@ load = 0;
 all_cyls = dictionary;
 cyl = 1;
 while true
-    for d = 1:4
+    for d = 1:4 % change 4 to 1 for part 1
         for i=1:size(input,2)
             if mod(d,2) == 1
                 line = input(:,i);
@@ -26,7 +26,6 @@ while true
                     new_rounds(j) = max(blocked + 1, max(new_rounds)+ 1);
                 end        
             end
-            % load = load + sum(height(input)+1 - new_rounds);
             if d > 2
                 new_rounds = height(input)+1 - new_rounds;
             end
@@ -39,13 +38,11 @@ while true
             end
         end
     end
-    % load
     load = sum(sum((input == 'O'),2) .* (height(input):-1:1)');
-    % pattern
+
     if ~isConfigured(all_cyls) || ~isKey(all_cyls, {input})
         all_cyls{{input}} = [load cyl];
     else
-        % cycle
         cycle_start_dur = all_cyls{{input}}(2) - 1;
         cycle_len = cyl - all_cyls{{input}}(2);
         break
