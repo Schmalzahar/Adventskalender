@@ -24,5 +24,20 @@ classdef PriorityQueue < handle
             % Returns true if the queue is empty, false otherwise
             result = isempty(obj.items);
         end
+        
+        function obj = updateKey(obj, ch_item, newPrio)
+            items = [obj.items{:}];
+            items1 = reshape([items.item],4,[])';
+            idx = all(items1(:,1:2) == ch_item(1:2),2);
+            obj.items{idx}.item = ch_item;
+            obj.items{idx}.priority = newPrio;
+        end
+        
+        function its = getItems(obj)
+            its = [obj.items{:}];
+            if ~isempty(its)
+                its = reshape([its.item],4,[])';
+            end
+        end
     end
 end
