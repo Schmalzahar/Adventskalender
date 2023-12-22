@@ -12,30 +12,34 @@ map = zeros(max(input(:,:,1),[],'all')-min(input(:,:,1),[],'all')+1, ...
     max(input(:,:,2),[],'all')-min(input(:,:,2),[],'all')+1, ...
     max(input(:,:,3),[],'all')-min(input(:,:,3),[],'all')+1);
 xv = split(sprintf("x%d,",1:height(x_block)),',');
+xvv = [xv repelem("x",height(xv),1)];
+xvv = num2cell([xv repelem("x",height(xv),1)],2);
 yv = split(sprintf("y%d,",1:height(y_block)),',');
+yvv = num2cell([yv repelem("y",height(yv),1)],2);
 zv = split(sprintf("z%d,",1:height(z_block)),',');
+zvv = num2cell([zv repelem("z",height(zv),1)],2);
 x_blocks = dictionary(xv(1:end-1), cellfun(@(x) permute(x,[3 2 1])', num2cell(x_block,[3 2]), 'UniformOutput', false));
 y_blocks = dictionary(yv(1:end-1), cellfun(@(x) permute(x,[3 2 1])', num2cell(y_block,[3 2]), 'UniformOutput', false));
 z_blocks = dictionary(zv(1:end-1), cellfun(@(x) permute(x,[3 2 1])', num2cell(z_block,[3 2]), 'UniformOutput', false));
 
 blocks = dictionary([x_blocks.keys;y_blocks.keys;z_blocks.keys],[x_blocks.values;y_blocks.values;z_blocks.values]);
 
-blocktype = dictionary((1:height(input)),[xv(1:end-1);yv(1:end-1);zv(1:end-1)]');
-
-
+blocktype = dictionary((1:height(input)),[xvv(1:end-1);yvv(1:end-1);zvv(1:end-1)]');
+toc
 %% put them in the map
 for i=1:height(input)
-    b = blocks{blocktype(i)};
+    b = blocks{blocktype{i}(1)};
     map((b(1,1):b(1,2))+1,(b(2,1):b(2,2))+1,(b(3,1):b(3,2))) = i;
 end
-[map, ~] = letthemFall(map, blocktype);
+[map, blocks, ~] = letthemFall(map, blocks, blocktype);
+toc
 %% save to disintegrate?
 res = 0;
 save_bricks = [];
 for i=1:height(input)    
     inds = find(map == i);
     % check layer above
-    if contains(blocktype(i),'z')
+    if strcmp(blocktype{i}(2),"z")
         inds_ab = inds(end)+size(map,1)*size(map,2);
     else
         inds_ab = inds+size(map,1)*size(map,2);
@@ -47,7 +51,7 @@ for i=1:height(input)
         block_ab = blocks_ab(j);
         t_map = map;
         t_map(t_map == i) = 0;
-        if ~contains(blocktype(block_ab),'z') % z blocks are never save
+        if ~strcmp(blocktype{block_ab}(2),'z') % z blocks are never save
             b_ab_ind = find(t_map == block_ab);
             below_b_ab_ind = b_ab_ind - size(map,1)*size(map,2);
             if any(t_map(below_b_ab_ind)>0) % block is supported
@@ -72,12 +76,12 @@ for i=1:height(unsave_bricks)
     ind = find(map == br);
     t_map = map;
     t_map(ind) = 0;
-    [~, falling_bricks{i}] = letthemFall(t_map, blocktype);
+    [~,~, falling_bricks{i}] = letthemFall(t_map, blocks, blocktype);
 end
-sum(cellfun(@length,falling_bricks))
+sum(cellfun(@(x)length(unique(x)),falling_bricks))
 toc
 
-function [map, falling_bricks] = letthemFall(map, blocktype)
+function [map, blocks, falling_bricks] = letthemFall(map, blocks, blocktype)
     falling_bricks = [];
     for z=2:size(map,3)
             l = map(:,:,z); % layer
@@ -88,28 +92,43 @@ function [map, falling_bricks] = letthemFall(map, blocktype)
             nbil = numel(bil);
             occ = l > 0;
             % look down
-            for d=z-1:-1:1
+            d = z-1;
+            while true
                 dl = map(:,:,d);
                 dlocc = dl>0;
                 ol = dlocc & occ;
                 if ~any(ol,'all')
                     % path free, update map and occ
-                    if any(contains(blocktype(bil),'z'))
-                        % move all coords of the z block down
-                        zbil = bil(contains(blocktype(bil),'z'));
-                        for zb = zbil'
-                            inds = find(map == zb);
-                            map(inds) = 0;
-                            map(inds-size(map,1)*size(map,2)) = zb;
+                    t = reshape([blocktype{bil}],2,[]);
+                    rest = bil(t(2,:) ~= "z");
+                    l = l .* ismember(l,rest);
+                    if all(map(:,:,d-1) == 0,"all")
+                        dd = d;
+                        while all(map(:,:,dd) == 0,"all")
+                            dd = dd - 1;
+                            map(:,:,dd) = map(:,:,dd) + l;
+                            map(:,:,d+1) = map(:,:,d+1) - l; 
                         end
-                        rest = bil(~contains(blocktype(bil),'z'));
-                        l = l .* ismember(l,rest);             
+                    else
+                        map(:,:,d) = map(:,:,d) + l;
+                        map(:,:,d+1) = map(:,:,d+1) - l; 
                     end
-                    map(:,:,d) = map(:,:,d) + l;
-                    map(:,:,d+1) = map(:,:,d+1) - l; 
+                    zbil = bil(t(2,:) == "z");                    
+                    for zb = zbil' % z blocks moving down
+                        bloc = blocks{blocktype{zb}(1)};
+                        map((bloc(1,1):bloc(1,2))+1,(bloc(2,1):bloc(2,2))+1,(bloc(3,1):bloc(3,2))) = 0;
+                        blocks{blocktype{zb}(1)}(3,:) = blocks{blocktype{zb}(1)}(3,:) - 1;
+                        bloc = blocks{blocktype{zb}(1)};
+                        map((bloc(1,1):bloc(1,2))+1,(bloc(2,1):bloc(2,2))+1,(bloc(3,1):bloc(3,2))) = zb;
+                    end                    
                     falling_bricks = unique([falling_bricks bil']);
                     l = map(:,:,d);
                     bil = unique(l(l>0));
+                    while isempty(bil)
+                        d = d-1;
+                        l = map(:,:,d);
+                        bil = unique(l(l>0));
+                    end
                     nbil = numel(bil);
                     occ = l > 0;
                 elseif nbil > 1
@@ -119,15 +138,17 @@ function [map, falling_bricks] = letthemFall(map, blocktype)
                     for b = bil'
                         if ~any((l == b) & dlocc,'all')
                             % block can move
-                            if contains(blocktype(b),'z')
-                                inds = find(map == b);
-                                map(inds) = 0;
-                                map(inds-size(map,1)*size(map,2)) = b;
+                            if strcmp(blocktype{b}(2),"z")
+                                bloc = blocks{blocktype{b}(1)};
+                                map((bloc(1,1):bloc(1,2))+1,(bloc(2,1):bloc(2,2))+1,(bloc(3,1):bloc(3,2))) = 0;
+                                blocks{blocktype{b}(1)}(3,:) = blocks{blocktype{b}(1)}(3,:) - 1;
+                                bloc = blocks{blocktype{b}(1)};
+                                map((bloc(1,1):bloc(1,2))+1,(bloc(2,1):bloc(2,2))+1,(bloc(3,1):bloc(3,2))) = b;
                             else                    
                                 map(:,:,d) = map(:,:,d) + l .* (l == b);
                                 map(:,:,d+1) = map(:,:,d+1) -l .* (l == b);
                             end
-                            falling_bricks = unique([falling_bricks b]);
+                            falling_bricks = [falling_bricks b];
                             moved = true;
                         end                
                     end
@@ -140,6 +161,10 @@ function [map, falling_bricks] = letthemFall(map, blocktype)
                         occ = l > 0;
                     end
                 else
+                    break
+                end
+                d = d-1;
+                if d < 1
                     break
                 end
             end
