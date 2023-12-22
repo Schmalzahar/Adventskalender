@@ -27,7 +27,7 @@ classdef PriorityQueue < handle
         
         function obj = updateKey(obj, ch_item, newPrio)
             items = [obj.items{:}];
-            items1 = reshape([items.item],4,[])';
+            items1 = reshape([items.item],3,[])';
             idx = all(items1(:,1:2) == ch_item(1:2),2);
             obj.items{idx}.item = ch_item;
             obj.items{idx}.priority = newPrio;
@@ -36,7 +36,7 @@ classdef PriorityQueue < handle
         function its = getItems(obj)
             its = [obj.items{:}];
             if ~isempty(its)
-                its = reshape([its.item],4,[])';
+                its = reshape([its.item],3,[])';
             end
         end
     end

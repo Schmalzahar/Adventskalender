@@ -35,13 +35,6 @@ for i=1:250000
     extended_diff_data(end+1:end+length(pattern_diff),1) = i.*pattern_diff + d_data(103:233);
 end
 
-
-% final_step = 25000;
-
-% for i=1:250000
-%     extended_diff_data(end+1:end+length(pattern_diff),1) = i.*pattern_diff + d_data(21:31);
-% end
-
 rhs = cumsum([extended_data(end,2) extended_diff_data'])';
 extended_data(end+(1:(numel(extended_diff_data))),:) = [extended_data(end,1)+(1:numel(extended_diff_data))' rhs(2:end) ];
 

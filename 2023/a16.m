@@ -50,51 +50,62 @@ function dir_map = light_beam(grid, dir_map, beam_loc, beam_dir, dirs)
         return
     end
 
-    if grid(beam_loc) == '|' && ismember(beam_dir, [dirs(1), dirs(3)])
-        %split up down
-        new_dir_1 = dirs(2);
-        new_dir_2 = dirs(4);
-        new_loc_1 = NL(beam_loc, new_dir_1, size(grid), dirs);
-        new_loc_2 = NL(beam_loc, new_dir_2, size(grid), dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc_1, new_dir_1, dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc_2, new_dir_2, dirs);
-    elseif grid(beam_loc) == '-' && ismember(beam_dir, [dirs(2), dirs(4)])
-        %split left right
-        new_dir_1 = dirs(1);
-        new_dir_2 = dirs(3);
-        new_loc_1 = NL(beam_loc, new_dir_1, size(grid), dirs);
-        new_loc_2 = NL(beam_loc, new_dir_2, size(grid), dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc_1, new_dir_1, dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc_2, new_dir_2, dirs);        
-    elseif grid(beam_loc) == '/'
-        switch beam_dir
-            case dirs(1)
-                new_dir = dirs(4);
-            case dirs(2)
-                new_dir = dirs(3);
-            case dirs(3)
-                new_dir = dirs(2);
-            case dirs(4)
-                new_dir = dirs(1);
-        end
-        new_loc = NL(beam_loc, new_dir, size(grid), dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc, new_dir, dirs);
-    elseif grid(beam_loc) == '\'
-        switch beam_dir
-            case dirs(1)
-                new_dir = dirs(2);
-            case dirs(2)
-                new_dir = dirs(1);
-            case dirs(3)
-                new_dir = dirs(4);
-            case dirs(4)
-                new_dir = dirs(3);
-        end
-        new_loc = NL(beam_loc, new_dir, size(grid), dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc, new_dir, dirs);
-    else
-        new_loc = NL(beam_loc, beam_dir, size(grid), dirs);
-        [dir_map] = light_beam(grid, dir_map, new_loc, beam_dir, dirs);
+    switch  grid(beam_loc) 
+        case '|' 
+            if ismember(beam_dir, [dirs(1), dirs(3)])
+                %split up down
+                new_dir_1 = dirs(2);
+                new_dir_2 = dirs(4);
+                new_loc_1 = NL(beam_loc, new_dir_1, size(grid), dirs);
+                new_loc_2 = NL(beam_loc, new_dir_2, size(grid), dirs);
+                [dir_map] = light_beam(grid, dir_map, new_loc_1, new_dir_1, dirs);
+                [dir_map] = light_beam(grid, dir_map, new_loc_2, new_dir_2, dirs);
+            else
+                new_loc = NL(beam_loc, beam_dir, size(grid), dirs);
+                [dir_map] = light_beam(grid, dir_map, new_loc, beam_dir, dirs);
+            end
+        case '-' 
+            if ismember(beam_dir, [dirs(2), dirs(4)])
+                %split left right
+                new_dir_1 = dirs(1);
+                new_dir_2 = dirs(3);
+                new_loc_1 = NL(beam_loc, new_dir_1, size(grid), dirs);
+                new_loc_2 = NL(beam_loc, new_dir_2, size(grid), dirs);
+                [dir_map] = light_beam(grid, dir_map, new_loc_1, new_dir_1, dirs);
+                [dir_map] = light_beam(grid, dir_map, new_loc_2, new_dir_2, dirs); 
+            else
+                new_loc = NL(beam_loc, beam_dir, size(grid), dirs);
+                [dir_map] = light_beam(grid, dir_map, new_loc, beam_dir, dirs);
+            end
+        case '/'
+            switch beam_dir
+                case dirs(1)
+                    new_dir = dirs(4);
+                case dirs(2)
+                    new_dir = dirs(3);
+                case dirs(3)
+                    new_dir = dirs(2);
+                case dirs(4)
+                    new_dir = dirs(1);
+            end
+            new_loc = NL(beam_loc, new_dir, size(grid), dirs);
+            [dir_map] = light_beam(grid, dir_map, new_loc, new_dir, dirs);
+        case '\'
+            switch beam_dir
+                case dirs(1)
+                    new_dir = dirs(2);
+                case dirs(2)
+                    new_dir = dirs(1);
+                case dirs(3)
+                    new_dir = dirs(4);
+                case dirs(4)
+                    new_dir = dirs(3);
+            end
+            new_loc = NL(beam_loc, new_dir, size(grid), dirs);
+            [dir_map] = light_beam(grid, dir_map, new_loc, new_dir, dirs);
+        otherwise
+            new_loc = NL(beam_loc, beam_dir, size(grid), dirs);
+            [dir_map] = light_beam(grid, dir_map, new_loc, beam_dir, dirs);
     end
 end
 

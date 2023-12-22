@@ -20,12 +20,10 @@ while true
         for k=1:numel(points)
             point = points(k);
             new_points = [min(point+1,floor((point-0.0001)/height(grid)+1)*height(grid)) max(point-1,floor((point-0.0001)/height(grid))*height(grid)+1) point+height(grid) point-height(grid)]';
-            % new_points = [max(point+1,mod(point+1,height(grid))) max(point-1,floor((point-0.0001)/height(grid))*height(grid)+1) point+height(grid) point-height(grid)]';
             new_points(ismember(new_points,point_map{i}) | new_points <= 0 | new_points > numel(grid) | ismember(new_points, all_points)) = [];
             double_points = new_points(ismember(new_points,round_points));
             grid(double_points) = 0;
             actually_new_points = new_points(~ismember(new_points,round_points));
-            % new_point_map{i} = [new_point_map{i} actually_new_points'];
             new_point_map{i} = [new_point_map{i} new_points'];
             grid(actually_new_points) = i;
             round_points = [round_points; actually_new_points];
