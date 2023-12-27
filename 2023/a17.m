@@ -1,134 +1,142 @@
-input = char(readlines("a17.txt"));
-pos = [1 1];
-fin = [13 13];
-% directions: up down right left: 1 2 3 4
-pos = [pos 3]; % start dir 3, with 0 previous blocks in the same dir
+input = char(readlines("a17.txt"))-'0';
+start_pos = 1;
+fin = numel(input);
+switch 2
+    case 1
+        minSteps = 1;
+        maxSteps = 3;
+    case 2
+        minSteps = 4;
+        maxSteps = 10;
+end
 
-[a,b] = find(input > 1);
-unknown_knots = [a(2:end) b(2:end)];
-% open_list = [pos sum(abs(fin-pos))];
-closed_list = [];
-g = Inf(size(input));
-g(1,1) = 0;
-came From = dictionary;
+dirs = [1;height(input);-1;-height(input)]; %down right up left: 1 2 3 4
+numDirs = size(dirs,1);
 
-queue = PriorityQueue();
-queue.push(pos, sum(abs(fin-pos(1:2))));
+% minCost will record the cost needed to reach the goal position, assuming
+% you're already in that state
+minCost = inf([numel(input),numDirs,maxSteps]);
+% If you're at the goal position, there is zero cost remaining
+minCost(start_pos,:,minSteps:maxSteps) = 0;
+[di,st] = ndgrid([1 2],minSteps:maxSteps); % at the start, only down and right possible
+needsUpdating = [ones(2*(maxSteps-minSteps+1),1), di(:), st(:)];
 
-while ~queue.isEmpty()
+% save the path
+bestPath = repmat({double.empty(0,1)}, size(minCost));
 
-    curr_node = queue.pop();
-    pos = curr_node(1:2);
-    pos_id = sub2ind(size(input),pos(1),pos(2));
-    dir = curr_node(3);
-    % len = curr_node(4);
-    if all(curr_node(1:2) == fin)
-        path = reconstruct_path(cameFrom, curr_node, size(input));
-        break
-    end
-    if all(pos == [2,4])
-        test = 1;
-    end
+showMatrices(minCost, input)
 
-    closed_list = [closed_list; curr_node(1:2)];
-    a = [queue.items{:}];
-    if ~isempty(a)
-        open_list = reshape([a.item],3,[])';
-    else
-        open_list = [0 0 0 0];
-    end
+while ~isempty(needsUpdating)
 
-    % at most three blocks in a single direction, then 90d turn.
-    new_pos = [];
-    % if dir ~= 1 && ~(dir == 2 && len > 2) && pos(1) < height(input)
-    if dir ~= 1 && pos(1) < height(input)
-        new_pos = [new_pos;pos(1)+1 pos(2) 2];
-    end
-    % if dir ~= 2 && ~(dir == 1 && len > 2) && pos(1) > 1
-    if dir ~= 2 && pos(1) > 1
-        new_pos = [new_pos;pos(1)-1 pos(2) 1];
-    end
-    % if dir ~= 3 && ~(dir == 4 && len > 2) && pos(2) > 1
-    if dir ~= 3 && pos(2) > 1
-        new_pos = [new_pos;pos(1) pos(2)-1 4];
-    end
-    % if dir ~= 4 && ~(dir == 3 && len > 2) && pos(2) < width(input)
-    if dir ~= 4 && pos(2) < width(input)
-        new_pos = [new_pos;pos(1) pos(2)+1 3];
-    end
+    % Make sure the needsUpdating is unique so we don't repeat operations
+	needsUpdating = unique(needsUpdating,'rows');    
 
-    % every point should have g values for the 4 directions possible and
-    % for the length of the current straight line. A g value that is higher
-    % might still lead to the shortest overall path if the current straight
-    % line is shorter. Thus there are two cases for each direction: either
-    % a smaller g value (but possibly longer line) or a higher g value but
-    % shorter line.
+    newNeedsUpdating = double.empty(0,3);
 
+    for k=1:size(needsUpdating,1)
+        toUpdate = needsUpdating(k,:);
 
+        currPos = toUpdate(1);
+        dir = toUpdate(2);
+        numSteps = toUpdate(3);
 
-    % is the 3 step rule still acounted for?
-    last_three = reconstruct_last_3(cameFrom, curr_node, size(input));
-    [r,c] = ind2sub(size(input),last_three);
-    for i=1:height(new_pos)
-        if ismember(new_pos(i,1:2), closed_list, 'rows')
-            continue
-        end
-        %todo
-        % calculate costs
-        tentative_g = g(curr_node(1), curr_node(2)) + str2double(input(new_pos(i,1),new_pos(i,2)));
-        if ismember(new_pos(i,1:2), open_list(:,1:2), 'rows')...
-                && tentative_g >= g(new_pos(i,1), new_pos(i,2))
-            continue
-        end
         
-        if length(last_three) > 3
-            r_i = [r, new_pos(i,1)];
-            c_i = [c, new_pos(i,2)];
-            % max 4 equal vals in r_i or c_i
-            if (sum(r_i == mode(r_i)) == 5) || (sum(c_i == mode(c_i)) == 5)
-                continue
-            end
+        switch mod(currPos,height(input))
+            case 0 % if we are at the last row, we cannot move down
+                if dir == 1
+                    continue
+                end
+            case 1 % if we are at the first row, we wannot move up
+                if dir == 3
+                    continue
+                end
         end
-        
-        g(new_pos(i,1), new_pos(i,2)) = tentative_g;
-        id = sub2ind(size(input),new_pos(i,1),new_pos(i,2));
-        
-        cameFrom(id) = pos_id;
-        f = tentative_g + sum(abs(fin-new_pos(i,1:2)));
-        if ismember(new_pos(i,1:2), open_list(:,1:2), 'rows')
-            queue.updateKey(new_pos(i,:), f);
+        if currPos <= height(input) && dir == 4
+            continue % if we are at the first col, we cannot move left
+        end
+        if currPos >= (numel(input)-height(input)+1) && dir == 2
+            continue % if we are at the last col, we cannot move right
+        end
+
+        newPos = currPos + dirs(dir);
+
+        costToMoveToDest = input(newPos);
+        proposedCost = minCost(currPos,dir,numSteps) + costToMoveToDest;
+        proposedBestPath = [currPos; bestPath{currPos, dir, numSteps}];
+
+        % If numSteps>1, we have to continue in that direction
+        if numSteps > 1 % completely locked in
+            % Only one case
+            newDirs = dir;
+            newNumSteps_ = numSteps - 1;
         else
-            queue.push(new_pos(i,:), f);
+            % we can go left or right (relative to current dir)
+            newDirs = mod(dir + [-1,+1]-1,numDirs)+1;
+            % All numSteps are valid 
+            newNumSteps_ = minSteps:maxSteps;
         end
-    end
-end
 
-
-path_map = zeros(size(input));
-path_map(path) = 1;
-imagesc(path_map)
-sum(input(path(2:end))-48)
-
-function out = reconstruct_path(cameFrom, current, sz)    
-    current_id = sub2ind(sz,current(1), current(2));
-    out = current_id;
-    while ismember(current_id,cameFrom.keys)
-        current_id = cameFrom(current_id);
-        out = [current_id, out];
-    end
-end
-
-function out = reconstruct_last_3(cameFrom, current, sz)
-    current_id = sub2ind(sz,current(1), current(2));
-    out = current_id;
-    if isConfigured(cameFrom)
-        for i=1:3
-            if ismember(current_id,cameFrom.keys)
-                current_id = cameFrom(current_id);
-                out = [current_id, out];
-            else
-                break
+        % Propagate each of these cases separately
+        for newDir = newDirs
+            for newNumSteps = newNumSteps_
+                
+                priorMinCost = minCost(newPos,newDir, newNumSteps);
+                if proposedCost < priorMinCost
+                    minCost(newPos, newDir, newNumSteps) = proposedCost;
+                    bestPath{newPos, newDir, newNumSteps} = proposedBestPath;
+                    newNeedsUpdating(end+1,:) = [newPos, newDir, newNumSteps];
+                end
             end
         end
     end
+    needsUpdating = newNeedsUpdating;
+    showMatrices(minCost, input)
+end
+
+% Select the best option
+minCostFull = inf;
+bestPathFull = double.empty(0,1);
+for dirInd = 1:numDirs
+    for numSteps = 1:maxSteps
+        proposedMinCost = minCost(fin, dirInd, numSteps);
+        if proposedMinCost < minCostFull
+            minCostFull = proposedMinCost;
+            bestPathFull = bestPath{fin, dirInd, numSteps};
+        end
+    end
+end
+minCostFull
+
+%%
+figure;
+imagesc(input);
+daspect([1,1,1])
+colormap(hot)
+hold on
+[r,c] = ind2sub(size(input),bestPathFull);
+plot(c,r,'bo','LineWidth',5);
+% huh, there's apparently multiple minimum paths for the example...
+
+function showMatrices(minCost, input)
+	persistent f2
+	if isempty(f2) || ~isvalid(f2)
+		f2 = figure(2);
+	end
+	dirs = {'down','right','up','left'};
+	cap = max(minCost(:));
+	colormap(flipud(hot))
+	k = 1;
+	for depth = 1:size(minCost,3)
+		for dirInd = 1:4
+			ax = subplot(size(minCost,3),4,k,'Parent',f2);
+			imagesc( reshape(minCost(:,dirInd,depth),height(input),width(input)), 'Parent',ax);
+			caxis([0,cap])
+			daspect(ax,[1,1,1])
+			k = k + 1;
+			if depth==1
+				title(ax,dirs{dirInd});
+			end
+		end
+	end
+	drawnow limitrate
 end
