@@ -2,36 +2,56 @@ classdef PriorityQueue < handle
     % PriorityQueue is a simple implementation of a priority queue.
     
     properties
-        items = {}; % Stores the items in the queue
+        items = []; % Stores the items in the queue
+        priorities = [];
     end
     
     methods
+        % function obj = PriorityQueue(fin)
+        %     obj.fin = fin;
+        % end
+
         function obj = push(obj, item, priority)
             % Pushes an item onto the queue with the given priority
-            obj.items{end + 1} = struct('item', item, 'priority', priority);
+            % obj.items are already sorted by obj.priorities.
+            % you can also just sort, but this here exploits the fact that
+            % it is already sorted
+            if isempty(obj.priorities)
+                obj.priorities = priority;
+                obj.items = item;   
+                return
+            % elseif priority >= obj.priorities(end)
+            %     obj.priorities(end+1,:) = priority;
+            %     obj.items(end+1,:) = item;                
+            % elseif priority <= obj.priorities(1)
+            %     obj.priorities = [priority; obj.priorities];
+            %     obj.items = [item; obj.items];                
+            % else
+            %     id1 = find(obj.priorities < priority,1,'last');
+            %     obj.priorities = [obj.priorities(1:id1,:); priority; obj.priorities(id1+1:end,:)];
+            %     obj.items = [obj.items(1:id1,:); item; obj.items(id1+1:end,:)];               
+            end
+            id1 = find(obj.priorities < priority,1,'last');
+            if isempty(id1)
+                obj.priorities = [priority; obj.priorities];
+                obj.items = [item; obj.items];  
+            else
+                obj.priorities = [obj.priorities(1:id1,:); priority; obj.priorities(id1+1:end,:)];
+                obj.items = [obj.items(1:id1,:); item; obj.items(id1+1:end,:)]; 
+            end
         end
         
-        function item = pop(obj)
+        function [item, minPrio] = pop(obj)
             % Pops the item with the highest priority from the queue
-            priorities = [obj.items{:}];
-            priorities = [priorities.priority];
-            [~, idx] = min(priorities);
-            item = obj.items{idx}.item;
-            obj.items(idx) = [];
+            item = obj.items(1,:); obj.items(1,:) = [];
+            minPrio = obj.priorities(1,:); obj.priorities(1,:) = [];
         end
         
         function result = isEmpty(obj)
             % Returns true if the queue is empty, false otherwise
             result = isempty(obj.items);
         end
-        
-        function obj = updateKey(obj, ch_item, newPrio)
-            items = [obj.items{:}];
-            items1 = reshape([items.item],3,[])';
-            idx = all(items1(:,1:2) == ch_item(1:2),2);
-            obj.items{idx}.item = ch_item;
-            obj.items{idx}.priority = newPrio;
-        end
+       
         
         function its = getItems(obj)
             its = [obj.items{:}];

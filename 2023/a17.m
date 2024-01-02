@@ -1,7 +1,8 @@
 input = char(readlines("a17.txt"))-'0';
+tic
 start_pos = 1;
 fin = numel(input);
-switch 2
+switch 1
     case 1
         minSteps = 1;
         maxSteps = 3;
@@ -24,7 +25,7 @@ needsUpdating = [ones(2*(maxSteps-minSteps+1),1), di(:), st(:)];
 % save the path
 bestPath = repmat({double.empty(0,1)}, size(minCost));
 
-showMatrices(minCost, input)
+% showMatrices(minCost, input)
 
 while ~isempty(needsUpdating)
 
@@ -90,7 +91,7 @@ while ~isempty(needsUpdating)
         end
     end
     needsUpdating = newNeedsUpdating;
-    showMatrices(minCost, input)
+    % showMatrices(minCost, input)
 end
 
 % Select the best option
@@ -106,7 +107,7 @@ for dirInd = 1:numDirs
     end
 end
 minCostFull
-
+toc
 %%
 figure;
 imagesc(input);
