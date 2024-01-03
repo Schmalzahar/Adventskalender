@@ -1,81 +1,58 @@
 input = char(readlines('a15.txt'))'; % transpose so reading order in lin index
-new_round = input;
-start_units = find(ismember(new_round(:),["E","G"]));
-unit_map = dictionary(start_units,start_units); % map from start to curr
-hit_points = dictionary(start_units,200*ones(height(start_units),1));
-attack_power = dictionary(start_units,3*ones(height(start_units),1));
-% base graph, build adjacency matrix
 [r, c] = size(input');
 diagVec1 = repmat([ones(c-1, 1); 0], r, 1);
 diagVec1 = diagVec1(1:end-1);
 diagVec2 = ones(c*(r-1), 1);
 adj = diag(diagVec1, 1) + diag(diagVec2, c);
-adj = adj+adj';
+adj = adj+adj'; % base graph, build adjacency matrix
 baseG = graph(adj,strsplit(num2str(1:numel(input)),' '));
-t = 0;
-while any(new_round == 'E','all') && any(new_round == 'G','all')
-    units = find(ismember(new_round(:),["E","G"]));    
-    t = t + 1;
-    remaining_units = units;
-    while ~isempty(remaining_units)        
-        unit = remaining_units(1); remaining_units(1) = [];
-        % fprintf('Round: %d, units remaining: %d\n',t,length(remaining_units))
-        % move
-        [target, nextStep] = chooseTarget(new_round, unit, baseG); 
-        if target == -1
-            continue % no more free spots or not reachable. Also not in attacking range
-        end
-        if target ~= 0
-            % not in range
-            new_round(nextStep) = new_round(unit);
-            new_round(unit) = '.';
-            keys_ = keys(unit_map);
-            unit_map(keys_(unit_map.values == unit)) = nextStep;
-            % visualize
-            % temp_mat = new_round;
-            % temp_mat(unit) = 'C';
-            % temp_mat(nextStep) = 'c';
-            % temp_mat(target) = 'T';
-            % disp(temp_mat')
-
-            unit = nextStep;       
-
-        end        
-        % new_round'
-        % attacking
-        [hit_points, new_round, unit_map, info] = attack(new_round, unit, hit_points, attack_power, unit_map);
-        % disp(info)
-        if ~(any(new_round == 'E','all') && any(new_round == 'G','all'))
-            break
-        end
-        % if contains(info,'attacked')
-        %     info_ = str2double(string(extract(info,digitsPattern)));
-        %     temp_mat = new_round;
-        %     temp_mat(info_(1)) = 'A';
-        %     temp_mat(info_(2)) = 'T';
-        %     disp(temp_mat')
-        % end
-        % did we remove one?
-        if length(unit_map.values) ~= length(units)
-            remaining_units(~ismember(remaining_units,unit_map.values)) = [];
-        end
-    end    
-    % disp(new_round')
-    % temp_mat = string(new_round');
-    % temp_mat
-    % figure()
-    % imagesc(char(replace(temp_mat,["#",".","E","G"],["0","9","6","3"]))-'0')
-    % colormap gray
-    % axis equal
-    % title(t)
-    % for debugging, return the hit points by reading order
-    % [~,I] = sort(unit_map.values);
-    % hps = hit_points.values;
-    % hps = hps(I);
-    % disp(hps(hps>0)')
-    % % hps(I)
-    % disp(t)
-
+% part 2: increase elfe attack power until no elve dies
+num_elves = sum(input == 'E','all');
+atk = 3;
+start_elves = find(ismember(input(:),"E"));
+start_goblins = find(ismember(input(:),"G"));
+start_units = sort([start_elves;start_goblins]);
+new_round = input;
+while any(new_round == 'G','all') || sum(new_round == 'E','all') < num_elves
+    new_round = input;
+    atk = atk + 1;
+    unit_map = dictionary(start_units,start_units); % map from start to curr
+    hit_points = dictionary(start_units,200*ones(height(start_units),1));
+    attack_power = dictionary(start_elves,atk*ones(height(start_elves),1));
+    attack_power(start_goblins) = 3*ones(height(start_goblins),1);
+    t = 0;
+    while any(new_round == 'E','all') && any(new_round == 'G','all')
+        units = find(ismember(new_round(:),["E","G"]));    
+        t = t + 1;
+        remaining_units = units;
+        while ~isempty(remaining_units)        
+            unit = remaining_units(1); remaining_units(1) = [];
+            % move
+            [target, nextStep] = chooseTarget(new_round, unit, baseG); 
+            if target == -1
+                continue % no more free spots or not reachable. Also not in attacking range
+            end
+            if target ~= 0
+                % not in range
+                new_round(nextStep) = new_round(unit);
+                new_round(unit) = '.';
+                keys_ = keys(unit_map);
+                unit_map(keys_(unit_map.values == unit)) = nextStep;
+                unit = nextStep;
+            end        
+            % new_round'
+            % attacking
+            [hit_points, new_round, unit_map, info] = attack(new_round, unit, hit_points, attack_power, unit_map);
+            % disp(info)
+            if ~(any(new_round == 'E','all') && any(new_round == 'G','all'))
+                break
+            end
+            % did we remove one?
+            if length(unit_map.values) ~= length(units)
+                remaining_units(~ismember(remaining_units,unit_map.values)) = [];
+            end
+        end    
+    end
 end
 hps = hit_points.values;
 if isempty(remaining_units)
@@ -83,6 +60,9 @@ if isempty(remaining_units)
 else
     out = sum(hps(hps>0)) * (t-1)
 end
+
+%% part 2: we have to make sure that no elf dies
+
 
 
 function [hit_points, map, unit_map, info] = attack(map, unit, hit_points, attack_power, unit_map)
