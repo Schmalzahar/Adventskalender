@@ -40,10 +40,8 @@ while any(new_round == 'G','all') || sum(new_round == 'E','all') < num_elves
                 unit_map(keys_(unit_map.values == unit)) = nextStep;
                 unit = nextStep;
             end        
-            % new_round'
             % attacking
-            [hit_points, new_round, unit_map, info] = attack(new_round, unit, hit_points, attack_power, unit_map);
-            % disp(info)
+            [hit_points, new_round, unit_map] = attack(new_round, unit, hit_points, attack_power, unit_map);
             if ~(any(new_round == 'E','all') && any(new_round == 'G','all'))
                 break
             end
@@ -61,11 +59,7 @@ else
     out = sum(hps(hps>0)) * (t-1)
 end
 
-%% part 2: we have to make sure that no elf dies
-
-
-
-function [hit_points, map, unit_map, info] = attack(map, unit, hit_points, attack_power, unit_map)
+function [hit_points, map, unit_map] = attack(map, unit, hit_points, attack_power, unit_map)
     elve = find(map == 'E');
     goblin = find(map == 'G');
     
@@ -95,7 +89,6 @@ function [hit_points, map, unit_map, info] = attack(map, unit, hit_points, attac
             target = enemy_in_range;
         end
     else
-        info = 'Not in attack range';
         return
     end
     % deal damage
@@ -106,11 +99,6 @@ function [hit_points, map, unit_map, info] = attack(map, unit, hit_points, attac
     if hit_points(og_e) <= 0
         map(target) = '.';
         unit_map(og_e) = [];
-    end
-    if ismember(unit, elve)
-        info = sprintf('Elve %d attacked Goblin %d, Goblin remaining health: %d', unit, target, hit_points(og_e));
-    else
-        info = sprintf('Goblin %d attacked Elve %d, Elve remaining health: %d', unit, target, hit_points(og_e));
     end
 end
 
