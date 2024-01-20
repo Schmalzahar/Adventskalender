@@ -8,36 +8,29 @@ loc = nloc;
 
 input = input(3:end);
 tic
-[G, in, oloc, ~] = rec(G, input, loc, []);
+[G, in, oloc] = rec(G, input, loc);
 plotMap(G);
 dists = distances(G,1);
 max(dists) % part 1 result
 sum(dists>=1000) % part 2 result
 toc
-function [G, in, olocs, loc_list] = rec(G, in, start_locs, loc_list)
-    olocs = start_locs;
+function [G, in, oloc] = rec(G, in, start_loc)
+    oloc = start_loc;
     while true
         while ~ismember(in(1),["|","(",")", "$"])
-            nlocs = olocs + gD(in(1));
-            for i=1:height(nlocs)
-                G = G.addedge(n2s(olocs(i,:)),n2s(nlocs(i,:)));
-            end
-            olocs = nlocs;
+            nloc = oloc + gD(in(1));
+            G = G.addedge(n2s(oloc),n2s(nloc));
+            oloc = nloc;
             in = in(2:end);    
         end
         if ismember(in(1), "|")
-            loc_list = [loc_list; olocs];
-            loc_list = unique(loc_list,'rows');
-            olocs = start_locs;
+            oloc = start_loc;
             in = in(2:end);
-            continue
         end
         if in(1) == '('
-            [G, in, ~, olocs] = rec(G, in(2:end), olocs, []);
+            [G, in, oloc] = rec(G, in(2:end), oloc);
         end
         if in(1) == ')'
-            loc_list = [loc_list; olocs];
-            loc_list = unique(loc_list,'rows');
             in = in(2:end);
             return
         end
