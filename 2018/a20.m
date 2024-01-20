@@ -2,40 +2,42 @@ input = char(readlines("a20.txt"));
 
 loc = [0 0]; % r, c of start position
 
-openB = find(input == '('); closeB = find(input == ')');
-opt = find(input == '|');
-depth = 0;
-
 nloc = loc + gD(input(2));
 G = graph(n2s(loc),n2s(nloc));
 loc = nloc;
 
 input = input(3:end);
-
+tic
 [G, in, oloc, ~] = rec(G, input, loc, []);
 plotMap(G);
-
-function [G, in, oloc, loc_list] = rec(G, in, start_loc, loc_list)
-    oloc = start_loc;
+dists = distances(G,1);
+max(dists) % part 1 result
+sum(dists>=1000) % part 2 result
+toc
+function [G, in, olocs, loc_list] = rec(G, in, start_locs, loc_list)
+    olocs = start_locs;
     while true
         while ~ismember(in(1),["|","(",")", "$"])
-            nloc = oloc + gD(in(1));
-            G = G.addedge(n2s(oloc),n2s(nloc));
-            oloc = nloc;
+            nlocs = olocs + gD(in(1));
+            for i=1:height(nlocs)
+                G = G.addedge(n2s(olocs(i,:)),n2s(nlocs(i,:)));
+            end
+            olocs = nlocs;
             in = in(2:end);    
         end
         if ismember(in(1), "|")
-            loc_list(end+1,:) = oloc;
-            oloc = start_loc;
+            loc_list = [loc_list; olocs];
+            loc_list = unique(loc_list,'rows');
+            olocs = start_locs;
             in = in(2:end);
             continue
         end
         if in(1) == '('
-            cur_loc_list = loc_list; % wrong
-            [G, in, nloc, loc_list] = rec(G, in(2:end), oloc, []);
+            [G, in, ~, olocs] = rec(G, in(2:end), olocs, []);
         end
         if in(1) == ')'
-            loc_list(end+1,:) = oloc;
+            loc_list = [loc_list; olocs];
+            loc_list = unique(loc_list,'rows');
             in = in(2:end);
             return
         end
