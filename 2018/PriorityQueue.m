@@ -16,7 +16,8 @@ classdef PriorityQueue < handle
                 obj.priorities = priority;
                 obj.items = item;   
                 return           
-            end
+            end            
+
             id1 = find(obj.priorities < priority,1,'last');
             if isempty(id1)
                 obj.priorities = [priority; obj.priorities];
@@ -26,6 +27,38 @@ classdef PriorityQueue < handle
                 obj.items = [obj.items(1:id1,:); item; obj.items(id1+1:end,:)]; 
             end
         end
+        
+        function obj = pushMin(obj, item)
+            if isempty(obj.items)
+                obj.items = item;  
+            else
+                if obj.items(1,1) > item(1)
+                    obj.items = [item; obj.items];
+                elseif obj.items(1,1) == item(1)
+                    test = 1;
+                else
+                    I = find(item(1) <= obj.items(:,1),1);
+                    if isempty(I)
+                        obj.items = [obj.items; item];
+                        return
+                    else
+                        if item(1) == obj.items(I,1) && item(2) < obj.items(I,2)
+                            obj.items = [obj.items(1:I-1,:); item; obj.items(I:end,:)];
+                        elseif item(1) == obj.items(I,1) 
+                            obj.items = [obj.items(1:I,:); item; obj.items(I+1:end,:)];
+                        elseif item(1) < obj.items(I,1)
+                            obj.items = [obj.items(1:I-1,:); item; obj.items(I:end,:)];
+                        end
+                        
+                    end
+                end
+            end
+        end
+
+        function item = popNP(obj)
+            item = obj.items(1,:); obj.items(1,:) = [];
+        end
+
         
         function [item, minPrio] = pop(obj)
             % Pops the item with the highest priority from the queue
