@@ -51,5 +51,9 @@ classdef reindeer
             obj.toattack = [];
             obj.todefend = [];
         end
+
+        function obj = boost(obj, boostAmount)
+            obj.dmg = obj.dmg + boostAmount;
+        end
     end
 end
