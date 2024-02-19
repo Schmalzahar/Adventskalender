@@ -1,41 +1,43 @@
 input = readlines("a09.txt").split(';');
 player_num = input(1).extract(digitsPattern).double;
 maxMarb = input(2).extract(digitsPattern).double;
-score = zeros(player_num,maxMarb);
-max_score = zeros(maxMarb,1);
-curr_max = 0;
-current_marble = 0;
-current_marble_idx = 1;
-circle = 0;
-while true    
-    if mod(current_marble+1,23) == 0
-        curr_player = mod(current_marble,player_num)+1;
-        score(curr_player,current_marble) = max(score(curr_player,:)) + current_marble+1;
-        circle_seven_sh = circshift(1:length(circle),7);
-        % current_ind = find(circle == current_marble);
-        sh_ind = circle_seven_sh(current_marble_idx);
-        score(curr_player,current_marble) = score(curr_player,current_marble) + circle(sh_ind);
-        if score(curr_player,current_marble) > curr_max
-            curr_max = score(curr_player,current_marble);
+
+tic
+score = dictionary;
+% part 2:
+maxMarb = maxMarb * 100;
+
+circle = NaN(maxMarb,2); % prev,next
+prev = 1; next = 2;
+% init the circle
+circle(2,prev) = 1; circle(2,next) = 1;
+circle(1,prev) = 2; circle(1,next) = 2;
+head = 2;
+
+for marble=2:(maxMarb+1)
+    if mod(marble,23) == 0
+        head = circle(circle(circle(circle(circle(circle(circle(head,prev),prev),prev),prev),prev),prev),prev);
+        if ~score.isConfigured || ~isKey(score,mod(marble, player_num))
+            score(mod(marble, player_num)) = marble + head-1;
+        else
+            score(mod(marble, player_num)) = ...
+                score(mod(marble, player_num)) + marble + head-1;
         end
-        circle(sh_ind) = [];
-        new_circle = circle;
-        current_marble = current_marble + 1;
-        current_marble_idx = sh_ind;
+        % remove marble
+        circle(circle(head,next),prev) = circle(head,prev);
+        circle(circle(head,prev),next) = circle(head,next);
+        head = circle(head,next);
     else
-        circle_inds_shift = circshift(1:length(circle),-1);
-        % current_ind = find(circle == current_marble);
-        sh_ind = circle_inds_shift(current_marble_idx);
-        new_circle = [circle(1:sh_ind) (current_marble+1) circle(sh_ind+1:end)];
-        current_marble = current_marble + 1;
-        current_marble_idx = sh_ind + 1;
+        % insert in the next marble, relative to head
+        head = circle(head,next);
+        % insert between this and next
+        circle(marble+1,prev) = head;
+        circle(marble+1,next) = circle(head,next);
+        circle(circle(head,next),prev) = marble+1;
+        circle(head,next) = marble+1;     
+        head = marble+1;
     end
-    circle = new_circle;
-    if current_marble == maxMarb
-        break
-    end
-
-    max_score(current_marble) = curr_max;
-
 end
-max(score,[],"all")
+format long
+max(score.values)
+toc
