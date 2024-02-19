@@ -3,7 +3,7 @@ initialState = input(1).extractAfter(": ");
 spreadInfo = input(3:end).split(" => ");
 potNums = 0:(length(char(initialState))-1);
 old_state = char(initialState);
-for i=1:200    
+for i=1:150
     plants = find(old_state == '#');
     expanded = [repelem('.',4) old_state repelem('.',4)];
     
@@ -17,7 +17,10 @@ for i=1:200
     potNums = [(potNums(1)-2):(potNums(1)-1) potNums (potNums(end)+1):(potNums(end)+2)];
     potNums = potNums(firstPlant:lastPlant);
     old_state = new_state(firstPlant:lastPlant);
+    fprintf([old_state+"\n"])
 end
 
 plants = find(old_state == '#') + min(potNums)-1;
 sum(plants)
+% there is a pattern at some point with the score increasing by 50 each
+% step.
