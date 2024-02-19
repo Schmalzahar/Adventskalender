@@ -13,12 +13,17 @@ train_nextTurn = -ones(height(trains),1);
 % directions: up, right, down, left: 1,2,3,4
 train_dir = NaN(height(trains),1);
 trains_left = 3;
-loop1 = [];
-loop2 = [];
-loop3 = [];
+loop1 = []; loop1_size = 0;
+loop2 = []; loop2_size = 0;
+loop3 = []; loop3_size = 0;
+tick = 1;
 while true
+    prev_trains = trains;
     for i = 1:height(trains)
         train = trains(i);
+        if train == 0
+            continue
+        end
         switch map(train)
             case '+'
                 train_dir(i) = mod(train_dir(i)-1+train_nextTurn(i),4)+1;
@@ -37,75 +42,46 @@ while true
                 map(train) = repl_with{map(train) == [dirs{:}]};
         end
         trains(i) = train + dir_moves(train_dir(i));
-    end
-    % sort trains (not relevant?)
-    % [trains, I] = sort(trains); 
-    % train_nextTurn = train_nextTurn(I);
-    % train_dir = train_dir(I);
-    if length(unique(trains)) < length(trains)
-        % part 2: remove the crashing trains
-        switch 2
-            case 1
-                break
-            case 2
-                while true
-                    [crash,num] = mode(trains,'all');
-                    if num == 1
-                        break
+        % collision?
+        if length(unique(trains)) < length(trains)
+            switch 2
+                case 1
+                    break
+                case 2
+                    while true
+                        [crash,num] = mode(trains,'all');
+                        if num == 1 || crash == 0
+                            break
+                        end
+                        rm_ind = trains == crash;
+                        [c,r] = ind2sub(size(map),mode(trains(rm_ind)));
+                        fprintf("Crash at %d,%d on tick %d.\n",r(1)-1,c(1)-1,tick)
+                        trains(rm_ind) = 0;
+                        train_nextTurn(rm_ind) = 0;
+                        train_dir(rm_ind) = 0;
                     end
-                    rm_ind = trains == crash;
-                    trains(rm_ind) = [];
-                    train_nextTurn(rm_ind) = [];
-                    train_dir(rm_ind) = [];
-                end
-
+    
+            end
         end
     end
-    if length(trains) <= 3
-        % create a list for each train position
-    
-            % if ~any(trains(1) == loop1)
-            loop1(end+1,1) = trains(1);
-            % else
-            %     trains_left = trains_left - 1;
-            % end
-            % if ~any(trains(2) == loop2)
-            loop2(end+1,1) = trains(2);
-            % else
-            %     trains_left = trains_left - 1;
-            % end
-            % if ~any(trains(3) == loop3)
-            loop3(end+1,1) = trains(3);
-            % else
-            %     trains_left = trains_left - 1;
-            % end                      
-        % end
+    if any(trains == 0)
+        rm_ind = trains == 0;
+        trains(rm_ind) = [];
+        train_nextTurn(rm_ind) = [];
+        train_dir(rm_ind) = [];
     end
-    if length(loop3) == 50000
+    if tick == 476
+        test = 1;
+    end
+    % sort trains
+    [trains, I] = sort(trains); 
+    train_nextTurn = train_nextTurn(I);
+    train_dir = train_dir(I);
+
+    if length(trains) == 1
         break
     end
-    % if trains_left == 0
-    %     break
-    % end
-    % length(trains)
-    % % % plot map
-    % pl_map = string(map);
-    % pl_map = pl_map.replace([" ","-","|","/","\","+"],["0","1","1","1","1","2"]);
-    % pl_map = char(pl_map)-'0';
-    % pl_map(trains) = '3';
-    % colormap jet
-    % imagesc(pl_map,[0 3])
+    tick = tick + 1;
 end
 [c,r] = ind2sub(size(map),mode(trains));
 sprintf('%d,%d',r(1)-1,c(1)-1)
-%%
-pl_map = string(map);
-pl_map = pl_map.replace([" ","-","|","/","\","+"],["0","1","1","1","1","2"]);
-pl_map = char(pl_map)-'0';
-% pl_map(trains) = '3';
-pl_map(unique(loop1)) = 6;
-% pl_map(unique(loop2)) = 4;
-% pl_map(unique(loop3)) = 5;
-% pl_map(unique(loop1(ismember(loop1,loop3)))) = 7;
-colormap jet
-imagesc(pl_map,[0 7])
