@@ -3,8 +3,22 @@ ip = input(1).extract(digitsPattern).double+1;
 regs = zeros(1,6);
 regs(1) = 1;
 instructions = input(2:end);
+cycle = 0;
+print = false;
 while true
     if regs(ip)+1 <= length(instructions)
+        step = regs(ip)+1;
+        if step == 4
+            cycle = cycle + 1;
+        end
+        if cycle == 1
+            print = true;
+            sum(divisors(regs(2)))
+            break
+        end
+        if print
+            instructions(regs(ip)+1)
+        end
         regs = OP(instructions(regs(ip)+1), regs);
     else
         regs(ip) = regs(ip) - 1;
@@ -12,7 +26,11 @@ while true
     end 
     regs(ip) = regs(ip) + 1;
 end
-regs(1)
+
+
+% there is a loop between steps 4 and 12. What it does is to calculate the
+% sum of the divisors of the number in regs(2) after the first cycle.
+
 
 function reg = OP(op, reg)
 % internal ordering of: addr, addi, mulr, muli, banr, bani, borr, bori,
