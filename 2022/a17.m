@@ -12,7 +12,7 @@ rocks = {rock1, rock2, rock3, rock4, rock5};
 cave = zeros(3,7);
 rock_num = 5000;
 heights = zeros(rock_num,1);
-removed_height = 0;
+% removed_height = 0;
 jet_i = 1;
 rock_i = 1;
 infos = cell(rock_num,4);
@@ -66,40 +66,79 @@ for i=1:rock_num
     while ~any(cave(1,:))
         cave = cave(2:end,:);
     end
-    heights(i) = height(cave) + removed_height;
-    
+    heights(i) = height(cave);% + removed_height;
+    cave = cat(1,zeros(3,7),cave);
+
+
 %     cave
 %     if mod(i,700) == 0
 %         removed_height = removed_height + height(cave) - 500;
 %         cave = cave(1:500,:);
 %     end
-    infos(i,:) = {i,rock_i,jet_i,height(cave)};
+    infos(i,:) = {i,rock_i,jet_i,heights(i)};
     % check if rock_i and jet_i is already a known match
-    if i>1 && ismember([rock_i jet_i],[infos{1:i-1,2};infos{1:i-1,3}]','rows')
-        % loop found
-        %
-        ind = find(ismember([infos{1:i-1,2};infos{1:i-1,3}]',[rock_i jet_i],'rows'));
-        rocks_till_pattern_start = infos{ind,1};
-        height_till_pattern_start = infos{ind,4};
-        pattern_height = infos{i,4}-infos{ind,4};
-        pattern_rock_length = i-ind;
-        
-        pattern = [infos{ind:i-1,4}]-infos{ind,4};
+    if i > 50 && mod(i,10) == 0
+        imagesc(cave)
+        kernel = cave(40:50,:);
+        rem = cave(51:end,:);
+        remm = zeros(height(kernel),width(kernel),height(rem)-height(kernel));
+        for o=1:size(remm,3)
+            remm(:,:,o) = rem(o+1:o+height(kernel),:);
+        end
+        res = permute([all(kernel == remm,[1 2])],[3 2 1]);
+        if sum(res) > 1
+            h = heights(1:i);
+            dh = diff(h);
+            dh_max = max(dh);
+            max_loc = find(dh == dh_max);
+            space_between_max_loc = diff(max_loc);
+            % unique_vals = unique(space_between_max_loc);
+            % loop_start = 33; loop_end = 67;
+            loop_start = 613; loop_end = 2362; % by looking at space_between_max_loc
+            loop_height = heights(1:loop_start-1);
+            loop = heights(loop_start:loop_end) - loop_height(end);
+            loop_length = loop_end-loop_start+1;
+            % test_i = 2680
+            % remain = mod(test_i-loop_start,loop_length);
+            % mult = floor((test_i-loop_start)/loop_length);
+            % 
+            % heights(test_i) == loop_height(end) + mult * loop(end) + loop(remain+1)
 
-        remain = mod((1000000000000 -rocks_till_pattern_start),pattern_rock_length);
-        ans = height_till_pattern_start + floor((1000000000000 -rocks_till_pattern_start)/pattern_rock_length) * pattern_height + pattern(remain);
-        sprintf('%.12e',ans)
-        break
+            % result
+            result_i = 1000000000000;
+            remain = mod(result_i-loop_start,loop_length);
+            mult = floor((result_i-loop_start)/loop_length);
+            format long
+            result = loop_height(end) + mult * loop(end) + loop(remain+1)
+
+        end
+        close all
     end
+    % if i>1 && ismember([rock_i jet_i],[infos{1:i-1,2};infos{1:i-1,3}]','rows')
+    %     % loop found
+    %     %
+    %     ind = find(ismember([infos{1:i-1,2};infos{1:i-1,3}]',[rock_i jet_i],'rows'));
+    %     rocks_till_pattern_start = infos{ind,1};
+    %     height_till_pattern_start = infos{ind,4};
+    %     pattern_height = infos{i,4}-infos{ind,4};
+    %     pattern_rock_length = i-ind;
+    % 
+    %     pattern = [infos{ind:i-1,4}]-infos{ind,4};
+    % 
+    %     remain = mod((1000000000000 -rocks_till_pattern_start),pattern_rock_length);
+    %     ans = height_till_pattern_start + floor((1000000000000 -rocks_till_pattern_start)/pattern_rock_length) * pattern_height + pattern(remain);
+    %     sprintf('%.12e',ans)
+    %     break
+    % end
     if rock_i == 1
-        one_infos(end+1,:) = {i,rock_i,jet_i,height(cave)};
+        one_infos(end+1,:) = {i,rock_i,jet_i,heights(i)};
     end
     rock_i = mod(rock_i,length(rocks))+1;
-    cave = cat(1,zeros(3,7),cave);
+    
     
 end
 while ~any(cave(1,:))
     cave = cave(2:end,:);
 end
 toc
-% height(cave)+removed_height
+height(cave)
