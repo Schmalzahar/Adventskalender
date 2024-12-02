@@ -1,33 +1,13 @@
-input = readlines("a02.txt");
-safep1 = 0;
-safep2 = zeros(size(input));
-for i=1:size(input,1)
-    l = input(i);
-    ll = double(l.extract(digitsPattern));
-    d = diff(ll);
-    % either all neg or all pos
-    if all(d<0) || all(d>0)
-        if max(abs(d))<4
-            safep1 = safep1 + 1;
-            safep2(i) = 1;
-        end
-    end  
-
-    % remove one at a time
-    for j=1:height(ll)
-        if safep2(i) == 1
-            break
-        end
-        lll = ll;
-        lll(j) = [];
-        dd = diff(lll);
-        % either all neg or all pos
-        if all(dd<0) || all(dd>0)
-            if max(abs(dd))<4
-                safep2(i) =  1;
-            end
-        end  
-    end
-end
-safep1
-sum(safep2)
+input = readmatrix("a02.txt","Range",1);
+diff_in = diff(input,1,2);
+check = @(in) (all(in>0 | isnan(in),2) | all(in<0 | isnan(in),2))...
+            & max(abs(in),[],2)<4;
+safep1 = check(diff_in);
+part1 = sum(safep1)
+candidates = input(~safep1,:); % part 2: check those not already solved by part 1
+n = size(candidates,2);
+replicated = repmat(candidates,1,1, n);
+eye_matrix = permute(repmat(~eye(n),1,1,size(replicated,1)),[3 1 2]);
+one_removed = reshape(replicated(eye_matrix),[],n-1,n);
+one_removed_diff = diff(one_removed,1,2);
+part2 = sum(any(check(one_removed_diff),3)) + part1 % add those from part 1
