@@ -1,0 +1,7 @@
+ assert(a15('a15.txt') == 204300)
+ assert(a15('a15_1.txt') == 27730)
+ assert(a15('a15_2.txt') == 36334)
+ assert(a15('a15_3.txt') == 39514)
+ assert(a15('a15_4.txt') == 27755)
+ assert(a15('a15_5.txt') == 28944)
+ assert(a15('a15_6.txt') == 18740)
