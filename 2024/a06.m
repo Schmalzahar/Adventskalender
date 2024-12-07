@@ -1,5 +1,5 @@
 input = char(readlines("a06.txt"));
-
+tic
 [path,~] = findPath(input);
 part1 = sum(path == 'X','all')
 
@@ -15,7 +15,8 @@ for i=1:numel(p)
         loop_num = loop_num + 1;
     end
 end
-loop_num
+loop_num        
+toc
 function [input, loop] = findPath(input) 
     num_rot = 0;
     dirs = zeros([size(input),4]);
