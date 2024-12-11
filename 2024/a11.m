@@ -1,97 +1,36 @@
-input = readmatrix("a11.txt");
-
-stone_num = 0;
-
-% do the numbers 0 to 9
-stone_num_dic = dictionary;
-for i=0:9
-    stone_num_dic{i} = [];
-    stones = i;
-    next_stones = [];
-    max_blink = 10;
-    for blink=1:max_blink
-        for j=1:numel(stones)
-            % rule 1
-            if stones(j) == 0
-                % stones(j) = 1;
-                next_stones = [next_stones 1]; % TODO: go to stone dict                 
-            elseif mod(digits(stones(j)),2) == 0 % rule 2
-                next_stones = [next_stones firstHalf(stones(j)) secondHalf(stones(j))];                
-            else
-                next_stones = [next_stones 2024*stones(j)];
-            end            
-        end
-        stone_num_dic{i} = [stone_num_dic{i} numel(next_stones)];
-        stones = next_stones; next_stones = [];
-    end
-end
-
-%%
-
-for i=1:numel(input)
-    stones = input(i);
-    next_stones = [];
-    for blink=1:25
-        for j=1:numel(stones)
-            % rule 1
-            if stones(j) == 0
-                % stones(j) = 1;
-                next_stones = [next_stones 1];
-                continue
-            end
-            % rule 2
-            if mod(digits(stones(j)),2) == 0
-                next_stones = [next_stones firstHalf(stones(j)) secondHalf(stones(j))];
-                continue
-            end
-            next_stones = [next_stones 2024*stones(j)];
-        end
-        stones = next_stones; next_stones = [];
-    end
-end
+stones = readmatrix("a11.txt");
 
 
-%%
-global glob_dict
-glob_dict = configureDictionary("double","cell");
+% stones and the number  of times they occur
+stones=[stones; ones(1,numel(stones))];
+blnk=75; % 6789664325
 
-rec(0,11)
-
-
-
-%%
-function [stone_num] = rec(stone, rem_blink)
-global glob_dict    
-    % rule 1
-    if digits(stone) == 1
-        if isKey(glob_dict, stone)
-            test = 1;
+tic
+for j=1:blnk
+    % Get unique values and their multiplicity
+    [next_stones, ~, idx] = unique(stones(1,:)); 
+    counts = accumarray(idx, stones(2,:)');
+    stones = [next_stones; counts'];
+    next_stones=[];
+    for i=1:numel(stones(1,:))
+        stone=stones(1,i); mult=stones(2,i);        
+        if stone == 0
+            next_stone = 1;            
+        elseif mod(digits(stone),2) == 0 
+            d = 10^(digits(stone)/2);
+            sec = mod(stone,d);
+            fir = (stone - sec)/d;               
+            next_stone = [fir sec];  
         else
-            glob_dict{stone} = [];
-        end
+            next_stone = 2024*stone;
+        end 
+        next_stones=[next_stones [next_stone; repelem(mult, numel(next_stone))]];
     end
-    if stone == 0
-        next_stones = 1; % TODO: go to stone dict                 
-    elseif mod(digits(stone),2) == 0 % rule 2
-        next_stones = [firstHalf(stone) secondHalf(stone)];                
-    else
-        next_stones = 2024*stone;
-    end 
-    stone_num = numel(next_stones);
-    if rem_blink == 1
-        return
-    end
-    new_stone_num = 0;
-    for s=1:numel(next_stones)
-        next_stone = next_stones(s);
-        if isKey(glob_dict, next_stone)
-            todo = 1;
-        else
-            new_stone_num = rec(next_stones(s), rem_blink-1) + new_stone_num;
-        end
-    end
-    stone_num = new_stone_num;
+    stones=next_stones;
 end
+toc
+
+res = uint64(sum(stones(2,:)))
 
 function out = digits(in)
     if in == 0
@@ -99,14 +38,4 @@ function out = digits(in)
     else
         out = floor(log10(in)+1);
     end
-end
-
-function out = firstHalf(in)
-    in_str = char(num2str(in));
-    out = str2double(in_str(1:end/2));
-end
-
-function out = secondHalf(in)
-    in_str = char(num2str(in));
-    out = str2double(in_str(end/2+1:end));
 end
