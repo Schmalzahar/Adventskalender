@@ -9,12 +9,10 @@ for i=1:numel(freqs)
         for k=j+1:numel(fx)
             a = [fx(j) fy(j)]; b = [fx(k) fy(k)];
             f_diff = a-b;
-            part2_nodes(a(1),a(2),i) = 1;
-            part2_nodes(b(1),b(2),i) = 1;
             res_node = {};
             res_node{1} = @(x) a + x*f_diff; res_node{2} = @(x) b - x*f_diff;
             for l = 1:2
-                n = 1;
+                n = 0;
                 while true
                     nod = res_node{l}(n);
                     if nod(1) > 0 && nod(1) <= size(map,1) && ...
