@@ -35,7 +35,20 @@ while ~isempty(pq.items)
     end
 end
 
-score = min(seen(fin,seen(fin,:)>0))
+score = min(seen(fin,seen(fin,:,1)>0,1))
+%% retrace path
+testinput = input;
+testinput(fin) = 'O';
+path = fin;
+while true
+    % mins = min(seen(path(end),seen(path(end),:,1)>0,1));
+    idx = find(seen(path(end),:,1) == min(seen(path(end),seen(path(end),:,1)>0,1)));
+    path(end+1) = seen(path(end),idx,2);
+    if path(end) == start_pos
+        break
+    end
+    % testinput(path(end)) = 'O';
+end
 
 %% part 2
 paths = [];

@@ -1,31 +1,13 @@
-input = readlines("a15.txt")
+input = readlines("a15.txt");
 a = find(input == "");
 map = char(input(1:a-1)); moves = char(input(a+1:end));
 
 
 %% part 2
-wide_map = char(zeros([size(map,1) 2*size(map,2)]));
-for ix = 1:size(map,1)
-    for iy = 1:size(map,2)
-        switch map(ix, iy)
-            case '#'
-                wide_map(ix, 2*iy-1:2*iy) = '#';
-            case '.'
-                wide_map(ix, 2*iy-1:2*iy) = '.';
-            case 'O'
-                wide_map(ix, 2*iy-1:2*iy) = '[]';
-            case '@'
-                wide_map(ix, 2*iy-1:2*iy) = '@.';
-        end
-    end
-end
-
-map = wide_map;
-
-
-%%
-
-
+wide_map = repelem(map,1,2);
+l = find(wide_map == '@',1,"last");
+wide_map(l) = '.';
+map = char(string(wide_map).replace("OO","[]"));
 
 [robotx, roboty] = find(map == '@');
 
@@ -33,7 +15,7 @@ for ix=1:size(moves,1)
     for iy=1:size(moves,2)
 
         move = moves(ix, iy);
-        fl = 0;
+        fl = 0;                                                                                                                                                                 
         line = getLine(map, robotx, roboty, move);
 
         switch line(1)
@@ -172,30 +154,9 @@ end
 
 [boxx, boxy] = find(map == 'O');
 part1 = sum((boxx-1)*100+(boxy-1))
-%%
-% part 2 calc
-[boxx, boxy] = find(map == '[');
-% part2 = 0;
-% for i=1:numel(boxx)
-%     if boxx(i) < size(map,1)/2
-%         part2 = 100 * (boxx(i)-1) + part2;
-%     else
-%         part2 = 100 * (size(map,1)-boxx(i)) + part2;
-%     end
-%     if boxy(i) < size(map,2)/2
-%         part2 = boxy(i)-1 + part2;
-%     else
-%         part2 = size(map,2)-boxy(i) + part2;
-%     end
-% end
-% [t1, t2] = meshgrid([0:4 4:-1:0]*100,[0:9 9:-1:0]);
-% mat = t1' + t2' 
 
 [r,c] = find(map == '[');
 part2 = sum((r-1) * 100 + c-1)
-
-% part2
-
 
 function line = getLine(map, robotx, roboty, move)
     switch move
@@ -235,8 +196,3 @@ function [robotx, roboty] = robotMoved(robotx, roboty, move)
             robotx = robotx - 1;
     end
 end
-
-
-
-
-
