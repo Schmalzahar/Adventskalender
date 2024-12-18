@@ -2,10 +2,10 @@ input = char(readlines("a16.txt"));
 start_pos = find(input == 'S');
 fin = find(input == 'E');
 tic
-[score, path] = minScoreFromStartToFin(input, fin, start_pos, 4, 3); % start with east dir, final dir not specified
+[score, path] = minScoreFromStartToFin(input, fin, start_pos, 4, 3, 0); % start with east dir, final dir not specified
 score
 toc
-
+tic
 
 %% part 2
 %dirs: 1: right, 2:up, 3:left, 4:down
@@ -13,8 +13,8 @@ allPaths = findAllPathsFromStartToFin(input, fin, start_pos, 4, 1, score, flip(p
 
 numel(allPaths)
 
-
-function [minScore, minPath] = minScoreFromStartToFin(input, start_pos, fin_pos, start_dir, endDir)    
+toc
+function [minScore, minPath] = minScoreFromStartToFin(input, start_pos, fin_pos, start_dir, endDir, maxScore)    
     pq = PriorityQueue();    
     pq.push([start_pos start_dir 0], 0); 
     dirs = [size(input,1) -1 -size(input,1) 1]; %dirs: 1: right, 2:up, 3:left, 4:down
@@ -41,7 +41,11 @@ function [minScore, minPath] = minScoreFromStartToFin(input, start_pos, fin_pos,
                     cost = 0;
                 end
                 seen(new_pos, p, 2) = pos;
-                pq.push([new_pos p pos], prio + 1 + cost);
+                new_cost = prio + 1 + cost;
+                if maxScore ~= 0 && new_cost > maxScore
+                    continue
+                end
+                pq.push([new_pos p pos], new_cost);
             end
         end
     end
@@ -111,7 +115,7 @@ function allPaths = findAllPathsFromStartToFin(input, start_pos, fin_pos, start_
                 blockedPos = endPoint + pdirDir(pdirDir~=curDirDir);
                 blockedInput = input;
                 blockedInput(blockedPos) = '#';
-                [score, path] = minScoreFromStartToFin(blockedInput, endPoint, fin_pos, p, 3); % must end with east
+                [score, path] = minScoreFromStartToFin(blockedInput, endPoint, fin_pos, p, 3, testScore); % must end with east
                 if score == testScore
                     % we found something of the same length. Is this
                     % already the path we know?

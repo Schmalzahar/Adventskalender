@@ -8,47 +8,39 @@ res = sprintf('%d,',out_list);
 res(1:end-1)
 
 % part 2 brute
-A = 483647376;
+% A = 483647376;
+
+A = 6*8^15; % 0
+A = A + 5*8^14; % 3 
+A = A + 5*8^13; % 5
+A = A + 1*8^12; % 5
+A = A + 1*8^11; % 5
+A = A + 2*8^10; % 1
+A = A + 1*8^9; % 3
+
+% A = A + 6*8^8; % 0
+A = A + 0*8^7;
+% A = A + 0*8^6; % 2
+A = A + 3*8^6;
+A = A + 0*8^5; % 5
+A = A + 1*8^4; % 7
+A = A + 5*8^3; % 3
+A = A + 2*8^2; % 1
+A = A + 7*8^1; % 4
+A = A + 7*8^0; % 2
 
 
-Amin = 3.5184e+13;
-Amax = 3e14;
-A = Amin + 1.0e+12;
-A_min_bin = Amin;
-A_max_bin = Amax;
 while true
     
 
-    A = floor((A_min_bin + A_max_bin)/2);
+ 
+    A
+    program'
+    out_list = prog(A,0,0, program)
 
-    out_list = prog(A,0,0, program);
 
-    equal_digs = sum(out_list == program');
 
-    A_test1 = floor((A_min_bin + 3*A_max_bin)/4);
-    A_test2 = floor((3*A_min_bin + A_max_bin)/4);
-
-    out_list1 = prog(A_test1,0,0, program);
-    if length(out_list1) > 16
-        A_max_bin = A_test1;
-        continue
-    end
-    out_list2 = prog(A_test2,0,0, program);
-    if length(out_list1) < 15
-        A_min_bin = A_test2;
-        continue
-    end
-
-    equal_digs1 = sum(out_list1 == program')
-    equal_digs2 = sum(out_list2 == program')
-
-    if equal_digs1 > equal_digs2
-        A_min_bin = A_test1;
-    elseif equal_digs1 < equal_digs2
-        A_max_bin = A_test2;
-    else
-        A_min_bin = Amin;
-    end
+    
 
     % if length(out_list) == 16
     %     test = 1;
@@ -59,7 +51,7 @@ while true
             break
         end
     end
-    % A = A + 1;
+    A = A+1*8^7;
 end
 
 %%
