@@ -1,60 +1,44 @@
+clear all
 input = readlines("a17.txt");
+tic
 regs = str2double(extract(input(1:3),digitsPattern));
 A = regs(1);
-program = str2double(extract(input(5),digitsPattern));
-out_list = prog(A,0,0, program);
-% result
-res = sprintf('%d,',out_list);
+program = str2double(extract(input(5),digitsPattern))';
+
+res = sprintf('%d,',prog(A,0,0, program));
 res(1:end-1)
 
-% part 2 brute
-% A = 483647376;
+candidates = 0;
+for numberIdx = 1:numel(program)
+    newCandidates = []; 
+    for candidateIdx = 1:height(candidates)
 
-A = 6*8^15; % 0
-A = A + 5*8^14; % 3 
-A = A + 5*8^13; % 5
-A = A + 1*8^12; % 5
-A = A + 1*8^11; % 5
-A = A + 2*8^10; % 1
-A = A + 1*8^9; % 3
+        trialNumberOcta = zeros(1,16);
+        trialNumberOcta(1:width(candidates)) = candidates(candidateIdx,:);
 
-% A = A + 6*8^8; % 0
-A = A + 0*8^7;
-% A = A + 0*8^6; % 2
-A = A + 3*8^6;
-A = A + 0*8^5; % 5
-A = A + 1*8^4; % 7
-A = A + 5*8^3; % 3
-A = A + 2*8^2; % 1
-A = A + 7*8^1; % 4
-A = A + 7*8^0; % 2
-
-
-while true
-    
-
- 
-    A
-    program'
-    out_list = prog(A,0,0, program)
-
-
-
-    
-
-    % if length(out_list) == 16
-    %     test = 1;
-    % end
-    if length(out_list) == length(program)
-        if all(out_list == program')
-            A
-            break
+        opt = [];
+        for t = 0:7
+            trialNumberOcta(numberIdx) = t;
+            trialNumberDec = bin2dec(reshape(dec2bin(trialNumberOcta,3)',1,[]));
+            out = prog(trialNumberDec,0,0,program);
+            if out(end - numberIdx + 1:end) == program(end - numberIdx + 1:end)
+                opt = [opt t];
+            end
         end
+        if numberIdx == 1
+            newCandidates = opt(:);
+        else
+            newCandidates = [newCandidates;...
+                repelem(candidates(candidateIdx,:), numel(opt),1) opt(:)];
+        end
+
     end
-    A = A+1*8^7;
+    candidates = newCandidates;
 end
 
-%%
+% back to dec
+uint64(min(bin2dec(reshape(string(dec2bin(candidates,3)),[],16).join(""))))
+toc
 
 function out_list = prog(A, B, C, program)
     ip = 1;
